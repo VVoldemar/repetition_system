@@ -3,14 +3,17 @@ import csv
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QStandardItemModel, QStandardItem
 from PyQt6.QtWidgets import QApplication, QWidget, QMessageBox, QComboBox, QDialog
+
+from db import Database
 from import_page import Ui_Form
 from utils import import_separator_symbols
 from DeckChoiceWindow import DeckChoiceWidget
 
 class ImportWindow(QDialog, Ui_Form):
-    def __init__(self, parent=None, file_path=""):
+    def __init__(self, parent=None, db: Database = None, file_path=""):
         super().__init__(parent)
         self.setupUi(self)
+        self.db = db
         self.setModal(True)
         self.file_path = file_path
         self.comboBox.currentIndexChanged.connect(self.update_table_preview)
@@ -36,6 +39,9 @@ class ImportWindow(QDialog, Ui_Form):
                 delimiter = import_separator_symbols[text]
                 data = self.read_csv(delimiter)
                 model = self.create_model(data)
+
+                self.data = data
+                print(data)
 
                 self.tableView.setModel(model)
                 self.update_sides(data[0])
@@ -89,9 +95,14 @@ class ImportWindow(QDialog, Ui_Form):
     def import_cards(self):
         cboxes = [eval(f"self.comboBox_{i}") for i in range(2, 5)]
         if all(list(map(QComboBox.currentText, cboxes))):
-            pass
+            self.db.add_cards(self.comboBox_2.currentText(), [list(map(str.strip, item)) for item in self.data])
+            # self.cur = [list(map(str.strip, item)) for item in self.data]
+            # print(self.cur)
         else:
             QMessageBox.warning(self, "Error", "Not all required fields are filled")
+            return
+
+        self.close()
         # print(*[type(e) for e in cboxes])
         # print(list(map(QComboBox.currentText, cboxes)))
         # if all(list(map(lambda cbox: cbox)))
@@ -101,7 +112,10 @@ class ImportWindow(QDialog, Ui_Form):
 if __name__ == '__main__':
     import sys
     app = QApplication(sys.argv)
-    wd = ImportWindow(r"C:\Users\Vladimir\Documents\Учёные.csv")
+    db = Database('sr_db1.sqlite')
+    db.create_tables()
+    # wd = ImportWindow()
+    wd = ImportWindow(None, db, r"C:\Users\Vladimir\Documents\Учёные.csv")
     wd.show()
     sys.excepthook = lambda cls, exception, traceback: sys.__excepthook__(cls, exception, traceback)
     sys.exit(app.exec())

@@ -92,6 +92,9 @@ class Database:
                 DELETE FROM cards WHERE cards.deck_id = (SELECT id FROM decks WHERE name = ?)
             ''', (deck_name, ))
             self.cursor.execute('''
+                DELETE FROM queue WHERE queue.deck_id = (SELECT id FROM decks WHERE name = ?)
+            ''', (deck_name, ))
+            self.cursor.execute('''
                 DELETE FROM decks WHERE decks.name = ?
             ''', (deck_name, ))
             self.conn.commit()
@@ -128,10 +131,10 @@ class Database:
 
         self.conn.commit()
 
-    def add_cards(self, deck_id, cards: tuple[str, str]):
+    def add_cards(self, deck_name, cards: list[list[str, str]]):
         """Adds cards to the database from import cards"""
         for card in cards:
-            self.add_card(deck_id, card[0], card[1])
+            self.add_card(deck_name, card[0], card[1])
 
     def delete_card(self, deck_id, box_id):
         self.cursor

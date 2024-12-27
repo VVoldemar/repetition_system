@@ -97,7 +97,7 @@ class MWindow(QWidget, Ui_MainWindow):
 
             match os.path.splitext(file_path)[1]:
                 case '.csv':
-                    self.IW = ImportWindow(self, file_path)
+                    self.IW = ImportWindow(self, self.db, file_path)
                     self.IW.show()
                 case '.apkg':
                     QMessageBox.critical(None, "Error", STRINGS["errors"]["apkg_not_supported"],
